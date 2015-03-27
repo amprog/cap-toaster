@@ -18,6 +18,8 @@ html {
   min-width: 300px;
   width: 100%;
   max-width: 400px;
+  -webkit-animation: animationOut 1200ms linear both;
+  animation: animationOut 1200ms linear both;
 }
 #toaster .close-toaster {
   position: absolute;

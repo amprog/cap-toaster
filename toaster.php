@@ -112,7 +112,7 @@ register_field_group(array (
 			'taxonomy' => '',
 			'allow_null' => 0,
 			'multiple' => 0,
-			'return_format' => 'object',
+			'return_format' => 'id',
 			'ui' => 1,
 		),
 		array (
@@ -208,22 +208,9 @@ register_field_group(array (
 		array (
 			array (
 				'param' => 'taxonomy',
-				'operator' => '==',
-				'value' => 'category',
-			),
-		),
-		array (
-			array (
-				'param' => 'taxonomy',
-				'operator' => '==',
-				'value' => 'post_tag',
-			),
-		),
-		array (
-			array (
-				'param' => 'options_page',
-				'operator' => '==',
-				'value' => 'acf-options',
+				'operator' => '!=',
+                // Lets just add the fields everywhere.
+				'value' => '',
 			),
 		),
 		array (
@@ -251,24 +238,64 @@ register_field_group(array (
 
 endif;
 
+function toaster_manual_post_id_insertion( $post_id ) {
+    // // // bail early if no ACF data
+    if( empty($_POST['acf']) ) {
+
+        return;
+
+    }
+    $manual_ids = $_POST['acf']['field_5511c114893b4'];
+
+    // Update the posts field with new post id
+    update_field('field_5511c104893b3', $manual_ids, 'primary_'.$_POST['tag_ID'].'');
+
+    // Clear the manual post id field wes dont need to actually save any data there.
+    update_field('field_5511c114893b4', '', 'primary_'.$_POST['tag_ID'].'');
+}
+// run before ACF saves the $_POST['fields'] data
+add_action('acf/save_post', 'toaster_manual_post_id_insertion', 20);
+
 function toaster_get_social($location) {
     $social_network = get_field('toaster_social_network', $location);
     $social_profile = get_field('toaster_social_profile', $location);
 
-    return $social_profile;
+    if ( 'Facebook' === $social_network ) {
+        $toaster = '
+        <div id="fb-root"></div>
+        <script>(function(d, s, id) {
+          var js, fjs = d.getElementsByTagName(s)[0];
+          if (d.getElementById(id)) return;
+          js = d.createElement(s); js.id = id;
+          js.src = "//connect.facebook.net/en_US/all.js#xfbml=1";
+          fjs.parentNode.insertBefore(js, fjs);
+        }(document, "script", "facebook-jssdk"));</script>
+
+        <div class="fb-like" data-href="http://facebook.com/'.$social_profile.'" data-send="false" data-width="300" data-show-faces="true"></div>
+        ';
+    } elseif ( 'Twitter' === $social_network ) {
+        $toaster = "<a href='https://twitter.com/".$social_profile."' class='twitter-follow-button' data-show-count='true' data-size='large'>Follow @".$social_profile."</a><script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>";
+    }
+    return $toaster;
 }
 
 function toaster_get_post_toaster() {
-    $sub_title = get_field('toaster_subtitle');
-    $title = get_field('toaster_title');
+    $sub_title = '';
+    if ( get_field('toaster_subtitle', 'options') ) {
+        $sub_title = '<h5>'.get_field('toaster_subtitle').'</h5>';
+    }
+    $title = '';
+    if ( get_field('toaster_title', 'options') ) {
+        $title = '<h3>'.get_field('toaster_title').'</h3>';
+    }
     $text = get_field('toaster_text');
     $post = get_field('toaster_post');
     $markup = '';
     if (!empty($text)) {
         $markup .= '
-        <h5>'.$sub_title.'</h5>
+        '.$sub_title.'
         <div class="toaster-text">
-            <h3>'.$title.'</h3>
+            '.$title.'
             '.$text.'
         </div>
         ';
@@ -276,30 +303,31 @@ function toaster_get_post_toaster() {
     return $markup;
 }
 
-function toaster_term($content) {
-    $content = 'category';
-    return $content;
-}
-add_filter('cap_toaster_taxonomy', 'toaster_term', 10, 2);
-
 function toaster_get_tax_toaster() {
     $markup = '';
     if( has_filter('cap_toaster_taxonomy') ) {
         $taxonomy = apply_filters('cap_toaster_taxonomy', $content);
-        $term = get_the_terms( get_the_ID(), ''.$taxonomy.'' );
-        $taxonomy_name = $term[1]->taxonomy;
-        $taxonomy_term_id = $term[1]->term_id;
+        $term_object = get_the_terms( get_the_ID(), ''.$taxonomy.'' );
+        $term = array_pop($term_object);
+        $taxonomy_name = $term->taxonomy;
+        $taxonomy_term_id = $term->term_id;
         $taxonomy_term = ''.$taxonomy_name.'_'.$taxonomy_term_id.'';
         // if get fields then use if not then get social
-        $sub_title = get_field('toaster_subtitle', $taxonomy_term);
-        $title = get_field('toaster_title', $taxonomy_term);
+        $sub_title = '';
+        if ( get_field('toaster_subtitle', $taxonomy_term) ) {
+            $sub_title = '<h5>'.get_field('toaster_subtitle', $taxonomy_term).'</h5>';
+        }
+        $title = '';
+        if ( get_field('toaster_title', $taxonomy_term) ) {
+            $title = '<h3>'.get_field('toaster_title', $taxonomy_term).'</h3>';
+        }
         $text = get_field('toaster_text', $taxonomy_term);
         $post = get_field('toaster_post', $taxonomy_term);
         if ( !empty($text) ) {
             $markup .= '
-            <h5>'.$sub_title.'</h5>
+            '.$sub_title.'
             <div class="toaster-text">
-                <h3>'.$title.'</h3>
+                '.$title.'
                 '.$text.'
             </div>
             ';
@@ -312,16 +340,22 @@ function toaster_get_tax_toaster() {
 
 function toaster_get_global_toaster() {
     // if get fields then use if not then get social
-    $sub_title = get_field('toaster_subtitle', 'options');
-    $title = get_field('toaster_title', 'options');
+    $sub_title = '';
+    if ( get_field('toaster_subtitle', 'options') ) {
+        $sub_title = '<h5>'.get_field('toaster_subtitle', 'options').'</h5>';
+    }
+    $title = '';
+    if ( get_field('toaster_title', 'options') ) {
+        $title = '<h3>'.get_field('toaster_title', 'options').'</h3>';
+    }
     $text = get_field('toaster_text', 'options');
     $post = get_field('toaster_post', 'options');
     $markup = '';
     if (!empty($text)) {
         $markup .= '
-        <h5>'.$sub_title.'</h5>
+        '.$sub_title.'
         <div class="toaster-text">
-            <h3>'.$title.'</h3>
+            '.$title.'
             '.$text.'
         </div>
         ';
@@ -355,14 +389,16 @@ function get_toaster() {
         ?>
         <script>
         jQuery(document).ready(function(){
-            jQuery("article").append('<div id="trigger-toaster"></div>');
+            jQuery("<?php echo apply_filters('cap_toaster_post_class', $class);?>").append('<div id="trigger-toaster"></div>');
             var waypoint = new Waypoint({
                 element: document.getElementById("trigger-toaster"),
                 handler: function(direction) {
-                    console.log("Basic waypoint triggered");
-                    jQuery('#toaster').toggleClass('open');
+                    if (direction = 'down'){
+                        console.log("Basic waypoint triggered");
+                        jQuery('#toaster').addClass('open');
+                    }
                 },
-                offset: '100%'
+                offset: '200%'
             });
             jQuery('#toaster .close-toaster').click(function(){
                 jQuery('#toaster').removeClass('open');
