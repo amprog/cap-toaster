@@ -216,15 +216,16 @@ register_field_group(array (
 		array (
 			array (
 				'param' => 'post_type',
-				'operator' => '==',
-				'value' => 'reports',
+				'operator' => '!=',
+                // Lets just add the fields everywhere.
+				'value' => '',
 			),
 		),
-		array (
+        array (
 			array (
-				'param' => 'post_type',
+				'param' => 'options_page',
 				'operator' => '==',
-				'value' => 'post',
+				'value' => 'acf-options',
 			),
 		),
 	),
@@ -238,6 +239,9 @@ register_field_group(array (
 
 endif;
 
+/**
+ * @todo figure out how to handle this on posts and on taxonomies.
+ */
 function toaster_manual_post_id_insertion( $post_id ) {
     // // // bail early if no ACF data
     if( empty($_POST['acf']) ) {
@@ -245,16 +249,30 @@ function toaster_manual_post_id_insertion( $post_id ) {
         return;
 
     }
+    // if you have a post id then what we have is a post and not a taxonomy so lets use post id instead of primary id...
+    if (!empty( $_POST['acf']['post_ID'] )) {
+        $object_ID = $_POST['acf']['post_ID'];
+    } else {
+        $object_ID = 'primary_'.$_POST['tag_ID'].'';
+    }
     $manual_ids = $_POST['acf']['field_5511c114893b4'];
 
     // Update the posts field with new post id
-    update_field('field_5511c104893b3', $manual_ids, 'primary_'.$_POST['tag_ID'].'');
+    update_field('field_5511c104893b3', $manual_ids, $object_ID);
 
     // Clear the manual post id field wes dont need to actually save any data there.
-    update_field('field_5511c114893b4', '', 'primary_'.$_POST['tag_ID'].'');
+    update_field('field_5511c114893b4', '', $object_ID);
 }
 // run before ACF saves the $_POST['fields'] data
 add_action('acf/save_post', 'toaster_manual_post_id_insertion', 20);
+
+/**
+ * We dont want to show some fields in the backend depending on location.
+ * This function hides the social network selection field on posts.
+ */
+function toaster_hide_some_fields() {
+    // field_key-field_5511d1e3cec98
+}
 
 function toaster_get_social($location) {
     $social_network = get_field('toaster_social_network', $location);
@@ -291,14 +309,31 @@ function toaster_get_post_toaster() {
     $text = get_field('toaster_text');
     $post = get_field('toaster_post');
     $markup = '';
-    if (!empty($text)) {
-        $markup .= '
-        '.$sub_title.'
-        <div class="toaster-text">
-            '.$title.'
-            '.$text.'
-        </div>
-        ';
+    if (!empty($sub_title) || !empty($title) || !empty($text) || !empty($post)) {
+        // Check for a post first, if present use that over text.
+        if (!empty($post)) {
+            $toaster_post = get_post($post);
+            $markup .= '
+            '.$sub_title.'
+            <div class="toaster-post">
+                <div class="toaster-featured-image">
+                    '.get_the_post_thumbnail( $toaster_post->ID, 'thumbnail' ).'
+                </div>
+                <div class="toaster-text">
+                    '.$toaster_post->post_title.'
+                    '.$toaster_post->post_excerpt.'
+                </div>
+            </div>
+            ';
+        } else {
+            $markup .= '
+            '.$sub_title.'
+            <div class="toaster-text">
+                '.$title.'
+                '.$text.'
+            </div>
+            ';
+        }
     }
     return $markup;
 }
