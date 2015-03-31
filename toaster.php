@@ -96,32 +96,11 @@ register_field_group(array (
 		),
 		array (
 			'key' => 'field_5511c104893b3',
-			'label' => 'Toaster Post Search',
+			'label' => 'Toaster Post ID',
 			'name' => 'toaster_post',
 			'prefix' => '',
-			'type' => 'post_object',
-			'instructions' => '',
-			'required' => 0,
-			'conditional_logic' => 0,
-			'wrapper' => array (
-				'width' => '',
-				'class' => '',
-				'id' => '',
-			),
-			'post_type' => '',
-			'taxonomy' => '',
-			'allow_null' => 0,
-			'multiple' => 0,
-			'return_format' => 'id',
-			'ui' => 1,
-		),
-		array (
-			'key' => 'field_5511c114893b4',
-			'label' => 'Toaster Post ID',
-			'name' => 'toaster_post_id',
-			'prefix' => '',
 			'type' => 'text',
-			'instructions' => '',
+			'instructions' => 'Insert a post id that you would like to see in the post toaster.',
 			'required' => 0,
 			'conditional_logic' => 0,
 			'wrapper' => array (
@@ -130,7 +109,7 @@ register_field_group(array (
 				'id' => '',
 			),
 			'default_value' => '',
-			'placeholder' => '',
+			'placeholder' => '3605082',
 			'prepend' => '',
 			'append' => '',
 			'maxlength' => '',
@@ -240,38 +219,43 @@ register_field_group(array (
 endif;
 
 /**
- * @todo figure out how to handle this on posts and on taxonomies.
- */
-function toaster_manual_post_id_insertion( $post_id ) {
-    // // // bail early if no ACF data
-    if( empty($_POST['acf']) ) {
-
-        return;
-
-    }
-    // if you have a post id then what we have is a post and not a taxonomy so lets use post id instead of primary id...
-    if (!empty( $_POST['acf']['post_ID'] )) {
-        $object_ID = $_POST['acf']['post_ID'];
-    } else {
-        $object_ID = 'primary_'.$_POST['tag_ID'].'';
-    }
-    $manual_ids = $_POST['acf']['field_5511c114893b4'];
-
-    // Update the posts field with new post id
-    update_field('field_5511c104893b3', $manual_ids, $object_ID);
-
-    // Clear the manual post id field wes dont need to actually save any data there.
-    update_field('field_5511c114893b4', '', $object_ID);
-}
-// run before ACF saves the $_POST['fields'] data
-add_action('acf/save_post', 'toaster_manual_post_id_insertion', 20);
-
-/**
  * We dont want to show some fields in the backend depending on location.
  * This function hides the social network selection field on posts.
  */
 function toaster_hide_some_fields() {
-    // field_key-field_5511d1e3cec98
+    $screen = get_current_screen();
+    if ('post' === $screen->base) {
+        echo '<style>.field_key-field_5511d1e3cec98 {display: none!important;}</style>';
+    }
+    if ('toplevel_page_acf-options' === $screen->base) {
+        echo '<style>.field_key-field_5511c104893b3 {display: none!important;}</style>';
+    }
+}
+add_action('admin_head', 'toaster_hide_some_fields');
+
+function toaster_cookies() {
+    // we need to create a cookie for if theyve clicked on facebook like and if they have then show them go to the
+    ?>
+    <script>
+    jQuery(document).ready(function(){
+        // see if there's an existing cookie of the name
+        var cookie = get_cookie("tp_liked_social");
+
+        // if there is, then hide social
+        if (cookie) {
+            jQuery('.social-toaster').hide();
+        } else {
+            jQuery('.non-social-toaster').hide();
+        }
+
+        // set a value for the cookie so we wont show the social toaster again too soon
+        jQuery('.social-toaster').click(function(){
+            console.log('Social toaster clicked, we will hide this prompt for 60 days');
+            set_cookie("tp_liked_social", 1, "60", "/");
+        });
+    });
+    </script>
+    <?php
 }
 
 function toaster_get_social($location) {
@@ -280,23 +264,28 @@ function toaster_get_social($location) {
 
     if ( 'Facebook' === $social_network ) {
         $toaster = '
-        <div id="fb-root"></div>
-        <script>(function(d, s, id) {
-          var js, fjs = d.getElementsByTagName(s)[0];
-          if (d.getElementById(id)) return;
-          js = d.createElement(s); js.id = id;
-          js.src = "//connect.facebook.net/en_US/all.js#xfbml=1";
-          fjs.parentNode.insertBefore(js, fjs);
-        }(document, "script", "facebook-jssdk"));</script>
+        <div class="social-toaster">
+            <h5>Like Us On Facebook</h5>
+            <div id="fb-root"></div>
+            <script>(function(d, s, id) {
+              var js, fjs = d.getElementsByTagName(s)[0];
+              if (d.getElementById(id)) return;
+              js = d.createElement(s); js.id = id;
+              js.src = "//connect.facebook.net/en_US/all.js#xfbml=1";
+              fjs.parentNode.insertBefore(js, fjs);
+            }(document, "script", "facebook-jssdk"));</script>
 
-        <div class="fb-like" data-href="http://facebook.com/'.$social_profile.'" data-send="false" data-width="300" data-show-faces="true"></div>
-        ';
+            <div class="fb-like" data-href="http://facebook.com/'.$social_profile.'" data-send="false" data-width="300" data-show-faces="true"></div>
+        </div>';
     } elseif ( 'Twitter' === $social_network ) {
-        $toaster = "<a href='https://twitter.com/".$social_profile."' class='twitter-follow-button' data-show-count='true' data-size='large'>Follow @".$social_profile."</a><script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>";
+        $toaster = "<div class='social-toaster'><h5>Follow Us On Twitter</h5><a href='https://twitter.com/".$social_profile."' class='twitter-follow-button' data-show-count='true' data-size='large'>Follow @".$social_profile."</a><script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script></div>";
     }
     return $toaster;
 }
 
+/**
+ * @todo at some point we should come back here and refactor this into a more standardized ajax call. I envision theres a nice way to use wp-admin-ajax to check for a cookie and then get information from the database meaning this page can be cached better.
+ */
 function toaster_get_post_toaster() {
     $sub_title = '';
     if ( get_field('toaster_subtitle', 'options') ) {
@@ -309,7 +298,7 @@ function toaster_get_post_toaster() {
     $text = get_field('toaster_text');
     $post = get_field('toaster_post');
     $markup = '';
-    if (!empty($sub_title) || !empty($title) || !empty($text) || !empty($post)) {
+    if (!empty($sub_title)) {
         // Check for a post first, if present use that over text.
         if (!empty($post)) {
             $toaster_post = get_post($post);
@@ -327,7 +316,7 @@ function toaster_get_post_toaster() {
                 </div>
             </a>
             ';
-        } else {
+        } elseif(!empty($text)) {
             $markup .= '
             '.$sub_title.'
             <div class="toaster-text">
@@ -361,35 +350,44 @@ function toaster_get_tax_toaster() {
         $text = get_field('toaster_text', $taxonomy_term);
         $post = get_field('toaster_post', $taxonomy_term);
 
-        if (!empty($sub_title) || !empty($title) || !empty($text) || !empty($post)) {
+        if ( !empty($sub_title) ) {
+
+            // If social toaster is present then lets use it.
+            if ( !empty(toaster_get_social($taxonomy_term)) ) {
+                $markup .= toaster_get_social($taxonomy_term);
+            }
+
             // Check for a post first, if present use that over text.
             if (!empty($post)) {
                 $toaster_post = get_post($post);
                 $attachment_id = get_post_meta($toaster_post->ID, '_thumbnail_image_id', true);
                 $toaster_image = wp_get_attachment_image_src( $attachment_id, 'stack' );
+
                 $markup .= '
-                '.$sub_title.'
-                <a href="'.get_permalink($toaster_post->ID).'" class="toaster-post">
-                    <div class="toaster-featured-image">
-                        <img src="'.$toaster_image[0].'">
-                    </div>
-                    <div class="toaster-text">
-                        <h3>'.$toaster_post->post_title.'</h3>
-                        '.$toaster_post->post_excerpt.'
-                    </div>
-                </a>
+                <div class="non-social-toaster">
+                    '.$sub_title.'
+                    <a href="'.get_permalink($toaster_post->ID).'" class="toaster-post">
+                        <div class="toaster-featured-image">
+                            <img src="'.$toaster_image[0].'">
+                        </div>
+                        <div class="toaster-text">
+                            <h3>'.$toaster_post->post_title.'</h3>
+                            '.$toaster_post->post_excerpt.'
+                        </div>
+                    </a>
+                </div>
                 ';
-            } else {
+            } elseif(!empty($text)) {
                 $markup .= '
-                '.$sub_title.'
-                <div class="toaster-text">
-                    '.$title.'
-                    '.$text.'
+                <div class="non-social-toaster">
+                    '.$sub_title.'
+                    <div class="toaster-text">
+                        '.$title.'
+                        '.$text.'
+                    </div>
                 </div>
                 ';
             }
-        } elseif ( !empty(toaster_get_social($taxonomy_term)) ) {
-            $markup .= toaster_get_social($taxonomy_term);
         }
     }
     return $markup;
@@ -406,18 +404,25 @@ function toaster_get_global_toaster() {
         $title = '<h3>'.get_field('toaster_title', 'options').'</h3>';
     }
     $text = get_field('toaster_text', 'options');
-    $post = get_field('toaster_post', 'options');
     $markup = '';
-    if (!empty($text)) {
+
+    // Check for global social toaster. If not present fall back to manual toaster.
+    if ( !empty($sub_title) ) {
+
+        // If social toaster is present then lets use it.
+        if ( !empty(toaster_get_social('options')) ) {
+            $markup .= toaster_get_social('options');
+        }
+
         $markup .= '
-        '.$sub_title.'
-        <div class="toaster-text">
-            '.$title.'
-            '.$text.'
+        <div class="non-social-toaster">
+            '.$sub_title.'
+            <div class="toaster-text">
+                '.$title.'
+                '.$text.'
+            </div>
         </div>
         ';
-    } elseif ( !empty( toaster_get_social('options')) ) {
-        $markup .= toaster_get_social('options');
     }
     return $markup;
 }
@@ -444,7 +449,6 @@ function get_toaster() {
                 element: document.getElementById("trigger-toaster"),
                 handler: function(direction) {
                     if (direction = 'down'){
-                        console.log("Basic waypoint triggered");
                         jQuery('#toaster').addClass('open');
                     }
                 },
@@ -456,6 +460,7 @@ function get_toaster() {
             });
         });
         </script>
+        <?php toaster_cookies();?>
         <?php
     }
 }
