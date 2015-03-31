@@ -17,9 +17,7 @@ html {
   box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.34);
   min-width: 300px;
   width: 100%;
-  max-width: 400px;
-  -webkit-animation: animationOut 1200ms linear both;
-  animation: animationOut 1200ms linear both;
+  max-width: 500px;
 }
 #toaster .close-toaster {
   position: absolute;
@@ -32,6 +30,17 @@ html {
 }
 #toaster .toaster-inside {
   padding: 1rem;
+}
+#toaster .toaster-inside .toaster-post {
+  display: table;
+}
+#toaster .toaster-inside .toaster-post > div {
+  display: table-cell;
+  vertical-align: top;
+}
+#toaster .toaster-inside .toaster-post > div.toaster-featured-image {
+  padding-right: 1rem;
+  width: 160px;
 }
 #toaster.open {
   display: block;

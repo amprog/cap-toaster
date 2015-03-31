@@ -313,17 +313,19 @@ function toaster_get_post_toaster() {
         // Check for a post first, if present use that over text.
         if (!empty($post)) {
             $toaster_post = get_post($post);
+            $attachment_id = get_post_meta($toaster_post->ID, '_thumbnail_image_id', true);
+            $toaster_image = wp_get_attachment_image_src( $attachment_id, 'stack' );
             $markup .= '
             '.$sub_title.'
-            <div class="toaster-post">
+            <a href="'.get_permalink($toaster_post->ID).'" class="toaster-post">
                 <div class="toaster-featured-image">
-                    '.get_the_post_thumbnail( $toaster_post->ID, 'thumbnail' ).'
+                    <img src="'.$toaster_image[0].'">
                 </div>
                 <div class="toaster-text">
-                    '.$toaster_post->post_title.'
+                    <h3>'.$toaster_post->post_title.'</h3>
                     '.$toaster_post->post_excerpt.'
                 </div>
-            </div>
+            </a>
             ';
         } else {
             $markup .= '
@@ -358,14 +360,34 @@ function toaster_get_tax_toaster() {
         }
         $text = get_field('toaster_text', $taxonomy_term);
         $post = get_field('toaster_post', $taxonomy_term);
-        if ( !empty($text) ) {
-            $markup .= '
-            '.$sub_title.'
-            <div class="toaster-text">
-                '.$title.'
-                '.$text.'
-            </div>
-            ';
+
+        if (!empty($sub_title) || !empty($title) || !empty($text) || !empty($post)) {
+            // Check for a post first, if present use that over text.
+            if (!empty($post)) {
+                $toaster_post = get_post($post);
+                $attachment_id = get_post_meta($toaster_post->ID, '_thumbnail_image_id', true);
+                $toaster_image = wp_get_attachment_image_src( $attachment_id, 'stack' );
+                $markup .= '
+                '.$sub_title.'
+                <a href="'.get_permalink($toaster_post->ID).'" class="toaster-post">
+                    <div class="toaster-featured-image">
+                        <img src="'.$toaster_image[0].'">
+                    </div>
+                    <div class="toaster-text">
+                        <h3>'.$toaster_post->post_title.'</h3>
+                        '.$toaster_post->post_excerpt.'
+                    </div>
+                </a>
+                ';
+            } else {
+                $markup .= '
+                '.$sub_title.'
+                <div class="toaster-text">
+                    '.$title.'
+                    '.$text.'
+                </div>
+                ';
+            }
         } elseif ( !empty(toaster_get_social($taxonomy_term)) ) {
             $markup .= toaster_get_social($taxonomy_term);
         }
@@ -405,13 +427,6 @@ function get_toaster() {
         $markup = '<div id="toaster">';
         $markup .= '<span class="close-toaster">x</span>';
         $markup .= '<div class="toaster-inside">';
-        // need option to get toaster for just this post.
-        // if there is one for the post use it over the taxonomy one.
-        // if there is no taxonomy one fall back to global one.
-        // if the global one is not set then fall back to a
-        // social follow toaster for facebook or twitter.
-        // so we need fields for the post, fields for the options page, and a field on the options page thatll default to twitter/facebook whichever is selected.
-        // have google analytics events.
         if ( !empty(toaster_get_post_toaster()) ) {
             $markup .= toaster_get_post_toaster();
         } elseif ( !empty(toaster_get_tax_toaster()) ) {
