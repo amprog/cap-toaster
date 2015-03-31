@@ -235,11 +235,11 @@ add_action('admin_head', 'toaster_hide_some_fields');
 
 function toaster_cookies() {
     // we need to create a cookie for if theyve clicked on facebook like and if they have then show them go to the
-    ?>
+    $script = "
     <script>
     jQuery(document).ready(function(){
         // see if there's an existing cookie of the name
-        var cookie = get_cookie("tp_liked_social");
+        var cookie = get_cookie('tp_liked_social');
 
         // if there is, then hide social
         if (cookie) {
@@ -251,11 +251,12 @@ function toaster_cookies() {
         // set a value for the cookie so we wont show the social toaster again too soon
         jQuery('.social-toaster').click(function(){
             console.log('Social toaster clicked, we will hide this prompt for 60 days');
-            set_cookie("tp_liked_social", 1, "60", "/");
+            set_cookie('tp_liked_social', 1, '60', '/');
         });
     });
     </script>
-    <?php
+    ";
+    return $script;
 }
 
 function toaster_get_social($location) {
@@ -277,8 +278,10 @@ function toaster_get_social($location) {
 
             <div class="fb-like" data-href="http://facebook.com/'.$social_profile.'" data-send="false" data-width="300" data-show-faces="true"></div>
         </div>';
+        $toaster .= toaster_cookies();
     } elseif ( 'Twitter' === $social_network ) {
         $toaster = "<div class='social-toaster'><h5>Follow Us On Twitter</h5><a href='https://twitter.com/".$social_profile."' class='twitter-follow-button' data-show-count='true' data-size='large'>Follow @".$social_profile."</a><script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script></div>";
+        $toaster .= toaster_cookies();
     }
     return $toaster;
 }
@@ -460,7 +463,6 @@ function get_toaster() {
             });
         });
         </script>
-        <?php toaster_cookies();?>
         <?php
     }
 }
