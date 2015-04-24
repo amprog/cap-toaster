@@ -459,6 +459,7 @@ function get_toaster() {
             });
             jQuery('#toaster .close-toaster').click(function(){
                 jQuery('#toaster').removeClass('open');
+                Waypoint.destroyAll();
             });
         });
         </script>
