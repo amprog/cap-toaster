@@ -459,7 +459,6 @@ function get_toaster() {
             });
             jQuery('#toaster .close-toaster').click(function(){
                 jQuery('#toaster').removeClass('open');
-                jQuery('#toaster').addClass('close');
             });
         });
         </script>
