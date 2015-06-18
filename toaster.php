@@ -455,7 +455,6 @@ function get_toaster() {
                         jQuery('#toaster').addClass('open');
                     }
                 },
-                offset: '200%'
             });
             jQuery('#toaster .close-toaster').click(function(){
                 jQuery('#toaster').removeClass('open');
