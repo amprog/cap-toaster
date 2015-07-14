@@ -182,6 +182,30 @@ register_field_group(array (
 			'readonly' => 0,
 			'disabled' => 0,
 		),
+        array (
+            'key' => 'field_55a53b743ee54',
+            'label' => 'Hide toaster on desktop',
+            'name' => 'hide_toaster_desktop',
+            'type' => 'true_false',
+            'message' => '',
+            'default_value' => 0,
+        ),
+        array (
+            'key' => 'field_55a53b743f02b',
+            'label' => 'Hide toaster on tablet',
+            'name' => 'hide_toaster_tablet',
+            'type' => 'true_false',
+            'message' => '',
+            'default_value' => 0,
+        ),
+        array (
+            'key' => 'field_55a53b743f1c7',
+            'label' => 'Hide toaster on mobile',
+            'name' => 'hide_toaster_mobile',
+            'type' => 'true_false',
+            'message' => '',
+            'default_value' => 0,
+        ),
 	),
 	'location' => array (
 		array (
@@ -432,7 +456,23 @@ function toaster_get_global_toaster() {
 
 function get_toaster() {
     if (is_singular()) {
-        $markup = '<div id="toaster">';
+
+        // classes to be added to the toaster
+        $classes = '';
+        if ( true === get_field('hide_toaster_desktop','options')) {
+            $classes .= 'hide-toaster-desktop ';
+        }
+        if ( true === get_field('hide_toaster_tablet','options')) {
+            $classes .= 'hide-toaster-tablet ';
+        }
+        if ( true === get_field('hide_toaster_mobile','options')) {
+            $classes .= 'hide-toaster-mobile ';
+        }
+        if (! empty($classes)) {
+            $classes = ' class = "' . $classes . '" ';
+        }
+
+        $markup = '<div id="toaster" ' . $classes . '>';
         $markup .= '<span class="close-toaster">x</span>';
         $markup .= '<div class="toaster-inside">';
         if ( !empty(toaster_get_post_toaster()) ) {
