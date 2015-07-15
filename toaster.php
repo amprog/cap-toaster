@@ -262,15 +262,29 @@ function toaster_cookies() {
     $script = "
     <script>
     jQuery(document).ready(function(){
-        // see if there's an existing cookie of the name
-        var cookie = get_cookie('tp_liked_social');
+    	// see if there is an existing tp_hide_toaster cookie
+    	var cookie = get_cookie('tp_hide_toaster');
 
-        // if there is, then hide social
-        if (cookie) {
-            jQuery('.social-toaster').hide();
-        } else {
-            jQuery('.non-social-toaster').hide();
-        }
+    	// if there is, then hide the toaster altogether
+    	if (cookie) {
+    		jQuery('#toaster').hide();
+    	} else {
+            // otherwise, see if there's an existing tp_liked_social cookie
+        	var cookie = get_cookie('tp_liked_social');
+
+        	// if there is, then hide social
+	        if (cookie) {
+	            jQuery('.social-toaster').hide();
+	        } else {
+	            jQuery('.non-social-toaster').hide();
+	        }
+    	}
+
+        // set a value of the tp_hide_toaster cookie so we won't show this for 60 days
+        jQuery('.hide-toaster').click(function(){
+        	set_cookie('tp_hide_toaster', 1, '60', '/');
+        	jQuery('#toaster .close-toaster').click();
+        });
 
         // set a value for the cookie so we wont show the social toaster again too soon
         jQuery('.social-toaster').click(function(){
@@ -482,6 +496,7 @@ function get_toaster() {
         } else {
             $markup .= toaster_get_global_toaster();
         }
+	    $markup .= '<div class="hide-toaster">' . "Don't show this to me again" . '</div>';
         $markup .= '</div></div>';
         echo $markup;
         ?>

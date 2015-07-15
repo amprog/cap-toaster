@@ -42,6 +42,11 @@ html {
   padding-right: 1rem;
   width: 160px;
 }
+#toaster .toaster-inside .hide-toaster {
+  padding-top: 1em;
+  font-size: 13.5px;
+  cursor: pointer;
+}
 #toaster.open {
   display: block;
   -webkit-animation: animationIn 2000ms linear both;
