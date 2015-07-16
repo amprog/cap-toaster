@@ -183,6 +183,52 @@ register_field_group(array (
 			'disabled' => 0,
 		),
         array (
+            'key' => 'field_55a7d2011a8a3',
+            'label' => 'Cookie expiration (in days)',
+            'name' => 'toaster_cookie_expires',
+            'prefix' => '',
+            'type' => 'number',
+            'instructions' => 'The number of days until the toaster displays after the user clicks Don\'t show this to me again',
+            'required' => 0,
+            'conditional_logic' => 0,
+            'wrapper' => array (
+                'width' => '',
+                'class' => '',
+                'id' => '',
+            ),
+            'default_value' => 60,
+            'placeholder' => '',
+            'prepend' => '',
+            'append' => '',
+            'min' => 1,
+            'max' => 365,
+            'step' => '',
+            'readonly' => 0,
+            'disabled' => 0,
+        ),
+        array (
+            'key' => 'field_55a7d16f1a8a2',
+            'label' => 'Cookie value',
+            'name' => 'toaster_cookie_value',
+            'prefix' => '',
+            'type' => 'text',
+            'instructions' => 'Change the cookie value to show users the toaster before their cookies have expired',
+            'required' => 0,
+            'conditional_logic' => 0,
+            'wrapper' => array (
+                'width' => '',
+                'class' => '',
+                'id' => '',
+            ),
+            'default_value' => '20150716',
+            'placeholder' => '',
+            'prepend' => '',
+            'append' => '',
+            'maxlength' => '',
+            'readonly' => 0,
+            'disabled' => 0,
+        ),
+        array (
             'key' => 'field_55a53b743ee54',
             'label' => 'Hide toaster on desktop',
             'name' => 'hide_toaster_desktop',
@@ -258,38 +304,40 @@ function toaster_hide_some_fields() {
 add_action('admin_head', 'toaster_hide_some_fields');
 
 function toaster_cookies() {
-    // we need to create a cookie for if theyve clicked on facebook like and if they have then show them go to the
+    // check toaster cookies
+    $cookie_name = 'tp_hide_toaster';
+    $cookie_value = get_field('toaster_cookie_value','options');
+    $cookie_expires = get_field('toaster_cookie_expires','options');
     $script = "
     <script>
     jQuery(document).ready(function(){
     	// see if there is an existing tp_hide_toaster cookie
-    	var cookie = get_cookie('tp_hide_toaster');
+    	var toasterCookie = get_cookie('{$cookie_name}');
 
     	// if there is, then hide the toaster altogether
-    	if (cookie) {
+    	if ('{$cookie_value}' == toasterCookie) {
     		jQuery('#toaster').hide();
-    	} else {
-            // otherwise, see if there's an existing tp_liked_social cookie
-        	var cookie = get_cookie('tp_liked_social');
-
-        	// if there is, then hide social
-	        if (cookie) {
-	            jQuery('.social-toaster').hide();
-	        } else {
-	            jQuery('.non-social-toaster').hide();
-	        }
     	}
+        // otherwise, see if there's an existing tp_liked_social cookie
+        var socialCookie = get_cookie('tp_liked_social');
 
-        // set a value of the tp_hide_toaster cookie so we won't show this for 60 days
-        jQuery('.hide-toaster').click(function(){
-        	set_cookie('tp_hide_toaster', 1, '60', '/');
-        	jQuery('#toaster .close-toaster').click();
-        });
+        // if there is, then hide social
+        if (socialCookie) {
+            jQuery('.social-toaster').hide();
+        } else {
+            jQuery('.non-social-toaster').hide();
+        }
 
         // set a value for the cookie so we wont show the social toaster again too soon
         jQuery('.social-toaster').click(function(){
             console.log('Social toaster clicked, we will hide this prompt for 60 days');
-            set_cookie('tp_liked_social', 1, '60', '/');
+            set_cookie('tp_liked_social', 1, 60, '/');
+        });
+
+        // set a value of the tp_hide_toaster cookie so we won't show this for 60 days
+        jQuery('.hide-toaster').click(function(){
+        	set_cookie('tp_hide_toaster', '{$cookie_value}', {$cookie_expires}, '/');
+        	jQuery('#toaster .close-toaster').click();
         });
     });
     </script>
