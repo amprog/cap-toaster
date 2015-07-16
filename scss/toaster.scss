@@ -35,6 +35,11 @@
                 }
             }
         }
+        .hide-toaster {
+            padding-top: 1em;
+            font-size: 13.5px;
+            cursor: pointer;
+        }
     }
     &.open {
         display: block;
