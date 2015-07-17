@@ -14,6 +14,10 @@ function toaster_load_scripts_styles() {
     wp_register_script( 'waypoints', plugin_dir_url(__FILE__).'bower_components/waypoints/lib/noframework.waypoints.js' );
     wp_enqueue_script( 'waypoints' );
 
+    // js.cookie library
+    wp_register_script('js.cookie', plugin_dir_url(__FILE__).'js/js.cookie.js');
+    wp_enqueue_script('js.cookie');
+
     wp_enqueue_style( 'toaster-css', plugin_dir_url(__FILE__).'toaster.css' );
 }
 add_action( 'wp_enqueue_scripts', 'toaster_load_scripts_styles' );
@@ -312,14 +316,14 @@ function toaster_cookies() {
     <script>
     jQuery(document).ready(function(){
     	// see if there is an existing tp_hide_toaster cookie
-    	var toasterCookie = get_cookie('{$cookie_name}');
+    	var toasterCookie = Cookies.get('{$cookie_name}');
 
     	// if there is, then hide the toaster altogether
     	if ('{$cookie_value}' == toasterCookie) {
     		jQuery('#toaster').hide();
     	}
         // otherwise, see if there's an existing tp_liked_social cookie
-        var socialCookie = get_cookie('tp_liked_social');
+        var socialCookie = Cookies.get('tp_liked_social');
 
         // if there is, then hide social
         if (socialCookie) {
@@ -331,12 +335,12 @@ function toaster_cookies() {
         // set a value for the cookie so we wont show the social toaster again too soon
         jQuery('.social-toaster').click(function(){
             console.log('Social toaster clicked, we will hide this prompt for 60 days');
-            set_cookie('tp_liked_social', 1, 60, '/');
+            Cookies.set('tp_liked_social', 1, {expires:60});
         });
 
         // set a value of the tp_hide_toaster cookie so we won't show this for 60 days
         jQuery('.hide-toaster').click(function(){
-        	set_cookie('tp_hide_toaster', '{$cookie_value}', {$cookie_expires}, '/');
+        	Cookies.set('tp_hide_toaster', '{$cookie_value}', {expires: {$cookie_expires}});
         	jQuery('#toaster .close-toaster').click();
         });
     });
