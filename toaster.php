@@ -15,8 +15,8 @@ function toaster_load_scripts_styles() {
     wp_enqueue_script( 'waypoints' );
 
     // js.cookie library
-    wp_register_script('js.cookie', plugin_dir_url(__FILE__).'js/js.cookie.js');
-    wp_enqueue_script('js.cookie');
+    wp_register_script( 'js-cookie', plugin_dir_url(__FILE__).'bower_components/js-cookie/src/js.cookie.js' );
+    wp_enqueue_script( 'js-cookie' );
 
     wp_enqueue_style( 'toaster-css', plugin_dir_url(__FILE__).'toaster.css' );
 }
@@ -188,11 +188,11 @@ register_field_group(array (
 		),
         array (
             'key' => 'field_55a7d2011a8a3',
-            'label' => 'Cookie expiration (in days)',
+            'label' => 'Toaster Cookie Expiration (in days)',
             'name' => 'toaster_cookie_expires',
             'prefix' => '',
             'type' => 'number',
-            'instructions' => 'The number of days until the toaster displays after the user clicks Don\'t show this to me again',
+            'instructions' => 'The toaster will redisplay this number of days after the user clicks Don\'t show this to me again',
             'required' => 0,
             'conditional_logic' => 0,
             'wrapper' => array (
@@ -212,11 +212,11 @@ register_field_group(array (
         ),
         array (
             'key' => 'field_55a7d16f1a8a2',
-            'label' => 'Cookie value',
+            'label' => 'Toaster Cookie Value',
             'name' => 'toaster_cookie_value',
             'prefix' => '',
             'type' => 'text',
-            'instructions' => 'Change the cookie value to show users the toaster before their cookies have expired',
+            'instructions' => 'Change the toaster cookie value to show users the toaster before their toaster cookies have expired',
             'required' => 0,
             'conditional_logic' => 0,
             'wrapper' => array (
