@@ -14,6 +14,10 @@ function toaster_load_scripts_styles() {
     wp_register_script( 'waypoints', plugin_dir_url(__FILE__).'bower_components/waypoints/lib/noframework.waypoints.js' );
     wp_enqueue_script( 'waypoints' );
 
+    // js.cookie library
+    wp_register_script( 'js-cookie', plugin_dir_url(__FILE__).'bower_components/js-cookie/src/js.cookie.js' );
+    wp_enqueue_script( 'js-cookie' );
+
     wp_enqueue_style( 'toaster-css', plugin_dir_url(__FILE__).'toaster.css' );
 }
 add_action( 'wp_enqueue_scripts', 'toaster_load_scripts_styles' );
@@ -183,6 +187,52 @@ register_field_group(array (
 			'disabled' => 0,
 		),
         array (
+            'key' => 'field_55a7d2011a8a3',
+            'label' => 'Toaster Cookie Expiration (in days)',
+            'name' => 'toaster_cookie_expires',
+            'prefix' => '',
+            'type' => 'number',
+            'instructions' => 'The toaster will redisplay this number of days after the user clicks Don\'t show this to me again',
+            'required' => 0,
+            'conditional_logic' => 0,
+            'wrapper' => array (
+                'width' => '',
+                'class' => '',
+                'id' => '',
+            ),
+            'default_value' => 60,
+            'placeholder' => '',
+            'prepend' => '',
+            'append' => '',
+            'min' => 1,
+            'max' => 365,
+            'step' => '',
+            'readonly' => 0,
+            'disabled' => 0,
+        ),
+        array (
+            'key' => 'field_55a7d16f1a8a2',
+            'label' => 'Toaster Cookie Value',
+            'name' => 'toaster_cookie_value',
+            'prefix' => '',
+            'type' => 'text',
+            'instructions' => 'Change the toaster cookie value to show users the toaster before their toaster cookies have expired',
+            'required' => 0,
+            'conditional_logic' => 0,
+            'wrapper' => array (
+                'width' => '',
+                'class' => '',
+                'id' => '',
+            ),
+            'default_value' => '20150716',
+            'placeholder' => '',
+            'prepend' => '',
+            'append' => '',
+            'maxlength' => '',
+            'readonly' => 0,
+            'disabled' => 0,
+        ),
+        array (
             'key' => 'field_55a53b743ee54',
             'label' => 'Hide toaster on desktop',
             'name' => 'hide_toaster_desktop',
@@ -258,15 +308,25 @@ function toaster_hide_some_fields() {
 add_action('admin_head', 'toaster_hide_some_fields');
 
 function toaster_cookies() {
-    // we need to create a cookie for if theyve clicked on facebook like and if they have then show them go to the
+    // check toaster cookies
+    $cookie_name = 'tp_hide_toaster';
+    $cookie_value = get_field('toaster_cookie_value','options');
+    $cookie_expires = get_field('toaster_cookie_expires','options');
     $script = "
     <script>
     jQuery(document).ready(function(){
-        // see if there's an existing cookie of the name
-        var cookie = get_cookie('tp_liked_social');
+    	// see if there is an existing tp_hide_toaster cookie
+    	var toasterCookie = Cookies.get('{$cookie_name}');
+
+    	// if there is, then hide the toaster altogether
+    	if ('{$cookie_value}' == toasterCookie) {
+    		jQuery('#toaster').hide();
+    	}
+        // otherwise, see if there's an existing tp_liked_social cookie
+        var socialCookie = Cookies.get('tp_liked_social');
 
         // if there is, then hide social
-        if (cookie) {
+        if (socialCookie) {
             jQuery('.social-toaster').hide();
         } else {
             jQuery('.non-social-toaster').hide();
@@ -275,7 +335,13 @@ function toaster_cookies() {
         // set a value for the cookie so we wont show the social toaster again too soon
         jQuery('.social-toaster').click(function(){
             console.log('Social toaster clicked, we will hide this prompt for 60 days');
-            set_cookie('tp_liked_social', 1, '60', '/');
+            Cookies.set('tp_liked_social', 1, {expires:60});
+        });
+
+        // set a value of the tp_hide_toaster cookie so we won't show this for 60 days
+        jQuery('.hide-toaster').click(function(){
+        	Cookies.set('tp_hide_toaster', '{$cookie_value}', {expires: {$cookie_expires}});
+        	jQuery('#toaster .close-toaster').click();
         });
     });
     </script>
@@ -482,6 +548,7 @@ function get_toaster() {
         } else {
             $markup .= toaster_get_global_toaster();
         }
+	    $markup .= '<div class="hide-toaster">' . "Don't show this to me again" . '</div>';
         $markup .= '</div></div>';
         echo $markup;
         ?>
