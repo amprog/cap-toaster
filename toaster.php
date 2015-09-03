@@ -22,15 +22,24 @@ function toaster_load_scripts_styles() {
 }
 add_action( 'wp_enqueue_scripts', 'toaster_load_scripts_styles' );
 
-if( function_exists('acf_add_options_page') ) {
-	acf_add_options_page();
+if ( function_exists( 'acf_add_options_page' ) ) {
+    if ( function_exists( 'acf_add_options_page' ) ) {
+        acf_add_options_page( array(
+            'page_title' => 'Toaster Settings',
+            'menu_title' => 'Toaster Settings',
+            'menu_slug'  => 'cap-toaster',
+            'capability' => 'edit_posts',
+            'icon_url'   => 'dashicons-category',
+            'redirect'   => false,
+        ) );
+    }
 }
 
 if( function_exists('register_field_group') ):
 
 register_field_group(array (
 	'key' => 'group_5511c0df8dce1',
-	'title' => 'Toaster Options',
+	'title' => 'Toaster Settings',
 	'fields' => array (
 		array (
 			'key' => 'field_5511c0e9893b0',
@@ -278,7 +287,7 @@ register_field_group(array (
 			array (
 				'param' => 'options_page',
 				'operator' => '==',
-				'value' => 'acf-options',
+				'value' => 'cap-toaster',
 			),
 		),
 	),
