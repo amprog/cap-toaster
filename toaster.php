@@ -263,6 +263,14 @@ register_field_group(array (
             'message' => '',
             'default_value' => 0,
         ),
+		array (
+			'key' => 'field_55a53b743f2d8',
+			'label' => 'Kill toaster',
+			'name' => 'kill_toaster',
+			'type' => 'true_false',
+			'message' => 'Check to kill toaster site-wide',
+			'default_value' => 0,
+		),
 	),
 	'location' => array (
 		array (
@@ -528,7 +536,7 @@ function toaster_get_global_toaster() {
 }
 
 function get_toaster() {
-    if (is_singular()) {
+    if (is_singular() && false === get_field('kill_toaster','options')) {
 
         // classes to be added to the toaster
         $classes = '';
