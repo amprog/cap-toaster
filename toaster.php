@@ -57,7 +57,7 @@ register_field_group(array (
 			'placeholder' => '',
 			'maxlength' => '',
 			'rows' => '',
-			'new_lines' => 'wpautop',
+			'new_lines' => '',
 			'readonly' => 0,
 			'disabled' => 0,
 		),
@@ -200,7 +200,7 @@ function toaster_cookies() {
     jQuery(document).ready(function(){
     	// see if there is an existing tp_hide_toaster cookie
     	var toasterCookie = Cookies.get('{$cookie_name}');
-alert(toasterCookie + 'THIS IS THE TOASTER COOKIE');
+
     	// if there is, then hide the toaster altogether
     	if ('{$cookie_value}' == toasterCookie) {
     		jQuery('#toaster').hide();
