@@ -248,7 +248,6 @@ function get_toaster() {
         $markup .= '<span class="close-toaster">x</span>';
         $markup .= '<div class="toaster-inside">';
 		$markup .= toaster_get_global_toaster();
-	    $markup .= '<div class="hide-toaster">' . "Don't show this to me again" . '</div>';
         $markup .= '</div></div>';
         echo $markup;
         ?>
