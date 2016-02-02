@@ -144,7 +144,7 @@ register_field_group(array (
 		array (
 			array (
 				'param' => 'taxonomy',
-				'operator' => '!=',
+				'operator' => '==',
                 // Lets just add the fields everywhere.
 				'value' => '',
 			),
@@ -152,7 +152,7 @@ register_field_group(array (
 		array (
 			array (
 				'param' => 'post_type',
-				'operator' => '!=',
+				'operator' => '==',
                 // Lets just add the fields everywhere.
 				'value' => '',
 			),
