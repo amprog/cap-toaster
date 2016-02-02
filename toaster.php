@@ -141,22 +141,6 @@ register_field_group(array (
 		),
 	),
 	'location' => array (
-		array (
-			array (
-				'param' => 'taxonomy',
-				'operator' => '==',
-                // Lets just add the fields everywhere.
-				'value' => '',
-			),
-		),
-		array (
-			array (
-				'param' => 'post_type',
-				'operator' => '==',
-                // Lets just add the fields everywhere.
-				'value' => '',
-			),
-		),
         array (
 			array (
 				'param' => 'options_page',
